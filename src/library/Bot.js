@@ -21,7 +21,7 @@ class Bot extends EventEmitter {
         this.client.on("ready", this._ready.bind(this));
         this.client.on("error", this._error.bind(this));
         this.client.on("disconnect", this._disconnect.bind(this));
-        this.client.on("message", this._message.bind(this));
+        this.client.on("messageCreate", this._message.bind(this));
         this.client.on("guildCreate", this._guildCreate.bind(this));
         this.client.on("guildDelete", this._guildDelete.bind(this));
         this.client.on("channelCreate", this._channelCreate.bind(this));
