@@ -13,7 +13,8 @@
   "author": "Marek Kulik <marek.kulik@hotmail.com>",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^13.8.0",
-    "emojione": "^4.5.0"
+    "discord.js": "^13.8.1",
+    "emojione": "^4.5.0",
+    "events": "^3.3.0"
   }
 }
