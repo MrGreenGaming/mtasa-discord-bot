@@ -1,6 +1,6 @@
 "use strict";
 
-const Discord       = require("discord.js");
+const { Client, GatewayIntentBits } = require('discord.js');
 const EventEmitter  = require("events").EventEmitter;
 const Emojione      = require("emojione");
 
@@ -16,7 +16,12 @@ class Bot extends EventEmitter {
         this.channel = null;
         this.connected = false;
         this.reconnectTimer = null;
-        this.client = new Discord.Client({});
+        this.client = new Client({
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages
+            ]
+        });
 
         this.client.on("ready", this._ready.bind(this));
         this.client.on("error", this._error.bind(this));
@@ -26,6 +31,7 @@ class Bot extends EventEmitter {
         this.client.on("guildDelete", this._guildDelete.bind(this));
         this.client.on("channelCreate", this._channelCreate.bind(this));
         this.client.on("channelDelete", this._channelDelete.bind(this));
+    
     }
 
     get id() {
