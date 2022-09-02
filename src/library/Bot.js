@@ -19,7 +19,8 @@ class Bot extends EventEmitter {
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildMessages
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.MessageContent
             ]
         });
 
@@ -152,11 +153,12 @@ class Bot extends EventEmitter {
             return;
         }
 
+        
         // Ignore messages with attachments
         if (msg.attachments.size > 0) {
             return;
         }
-
+        
         // Ignore messages from ignored guilds/channels
         if (msg.channel !== this.channel) {
             return;
