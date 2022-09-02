@@ -16,12 +16,7 @@ class Bot extends EventEmitter {
         this.channel = null;
         this.connected = false;
         this.reconnectTimer = null;
-        this.client = new Discord.Client({
-            intents: [
-                Discord.Intents.FLAGS.GUILDS, 
-                Discord.Intents.FLAGS.GUILD_MESSAGES,
-            ]
-        });
+        this.client = new Discord.Client({});
 
         this.client.on("ready", this._ready.bind(this));
         this.client.on("error", this._error.bind(this));
