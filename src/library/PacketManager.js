@@ -42,7 +42,7 @@ class PacketManager {
      * @param {string} type
      * @param {object} payload
      */
-    process(bot, session, type, payload) {
+    process(bot, session, type, payload, logFunc) {
         if (!bot || !(bot instanceof Bot) || !session || !(session instanceof Session))
             return;
 
@@ -52,7 +52,7 @@ class PacketManager {
         if (!this.handlers.has(type))
             return;
 
-        (this.handlers.get(type)).execute(bot, session, type, payload);
+        (this.handlers.get(type)).execute(bot, session, type, payload, logFunc);
     }
 }
 

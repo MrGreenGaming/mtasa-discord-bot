@@ -1,16 +1,16 @@
-"use strict";
+'use strict';
 
-const Bot                   = require("./library/Bot");
-const Server                = require("./library/Server");
-const PacketManager         = require("./library/PacketManager");
-const SelectChannelPacket   = require("./library/packets/SelectChannelPacket");
-const TextMessagePacket     = require("./library/packets/TextMessagePacket");
-const TextCommandPacket     = require("./library/packets/TextCommandPacket");
+const Bot = require('./library/Bot');
+const Server = require('./library/Server');
+const PacketManager = require('./library/PacketManager');
+const SelectChannelPacket = require('./library/packets/SelectChannelPacket');
+const TextMessagePacket = require('./library/packets/TextMessagePacket');
+const TextCommandPacket = require('./library/packets/TextCommandPacket');
 
 /**
  * Application configuration
  */
-let config = require("./config.json");
+let config = require('./config.json');
 
 /**
  * Public socket endpoint server
@@ -34,136 +34,128 @@ let channelSessions = new Map();
 
 // Create bots from configuration
 for (let botconfig of config.bots) {
-    let channel = botconfig.channel;
+  let channel = botconfig.channel;
 
-    // Disallow channel duplicates
-    if (channelBots.has(channel)) {
-        console.log(`Skipping duplicate bot for channel ${channel}`);
-        continue;
-    }
+  // Disallow channel duplicates
+  if (channelBots.has(channel)) {
+    console.log(`Skipping duplicate bot for channel ${channel}`);
+    continue;
+  }
 
-    // Create the Bot instance
-    let bot = new Bot(config.guild, channel, botconfig.token);
+  // Create the Bot instance
+  let bot = new Bot(config.guild, channel, botconfig.token);
+  channelBots.set(channel, bot);
+
+  bot.on('ready', () => {
+    console.log(`Bot ${bot.name} connected`);
     channelBots.set(channel, bot);
 
-    bot.on("ready", () => {
-        console.log(`Bot ${bot.name} connected`);
-        channelBots.set(channel, bot);
-
-        // Send confirmation to waiting session
-        if (channelSessions.has(bot.channelName)) {
-            let session = channelSessions.get(bot.channelName);
-            session.send(SelectChannelPacket.success());
-            bot.emit("session.bind", session);
-        }
-    });
-
-    bot.on("disconnect", () => {
-        console.log(`Bot ${bot.name} disconnected`);
-
-        // Remove this bot
-        channelBots.delete(bot.channelName);
-    });
-
-    bot.on("message", (msg) => {
-        if (!channelSessions.has(bot.channelName))
-            return;
-
-        if (msg.cleanMessage.length > 200)
-            return;
-
-        let session = channelSessions.get(bot.channelName);
-
-        // TODO: Ratelimit for spammers
-
-        // Send message to MTA server
-        if (msg.content.startsWith("."))
-            session.send(new TextCommandPacket(msg));
-        else
-            session.send(new TextMessagePacket(msg));
-    });
-
-    bot.on("session.bind", (session) => {
-        if (!session.get("bind-message")) {
-            bot.sendMessage(`**Bot:** Hello :sparkles:`);
-            session.set("bind-message", true)
-        }
-    });
-
-    function login() {
-        bot.login()
-            .catch((error) => {
-                console.error(`Bot failed to login: ${error.message}`);
-                setTimeout(login, 5000);
-            });
+    // Send confirmation to waiting session
+    if (channelSessions.has(bot.channelName)) {
+      let session = channelSessions.get(bot.channelName);
+      session.send(SelectChannelPacket.success());
+      bot.emit('session.bind', session);
     }
+  });
 
-    login();
+  bot.on('disconnect', () => {
+    console.log(`Bot ${bot.name} disconnected`);
+
+    // Remove this bot
+    channelBots.delete(bot.channelName);
+  });
+
+  bot.on('message', (msg) => {
+    if (!channelSessions.has(bot.channelName)) return;
+
+    if (msg.cleanMessage.length > 200) return;
+
+    let session = channelSessions.get(bot.channelName);
+
+    // TODO: Ratelimit for spammers
+
+    // Send message to MTA server
+    if (msg.content.startsWith('.')) session.send(new TextCommandPacket(msg));
+    else session.send(new TextMessagePacket(msg));
+  });
+
+  bot.on('session.bind', (session) => {
+    if (!session.get('bind-message')) {
+      bot.sendMessage(`**Bot:** Hello :sparkles:`);
+      session.set('bind-message', true);
+    }
+  });
+
+  function login() {
+    bot.login().catch((error) => {
+      console.error(`Bot failed to login: ${error.message}`);
+      setTimeout(login, 5000);
+    });
+  }
+
+  login();
 }
 
-server.on("session.ready", (session) => {
-    session.set("channel", false);
+server.on('session.ready', (session) => {
+  session.set('channel', false);
 });
 
-server.on("session.close", (session) => {
-    if (!session.get("channel"))
-        return;
+server.on('session.close', (session) => {
+  if (!session.get('channel')) return;
 
-    let channel = session.get("channel");
+  let channel = session.get('channel');
 
-    if (channelSessions.has(channel)) {
-        channelSessions.delete(channel);
-    }
+  if (channelSessions.has(channel)) {
+    channelSessions.delete(channel);
+  }
 });
 
-server.on("data", (session, type, payload) => {
-    if (!session.get("channel")) {
-        if (type == "select-channel") {
-            // Verify payload
-            if (typeof payload.channel !== "string")
-                return session.send(SelectChannelPacket.error("no channel name in payload")).close();
+server.on('data', (session, type, payload) => {
+  if (!session.get('channel')) {
+    if (type == 'select-channel') {
+      // Verify payload
+      if (typeof payload.channel !== 'string') return session.send(SelectChannelPacket.error('no channel name in payload')).close();
 
-            // Check if any bot manages this channel
-            if (!channelBots.has(payload.channel))
-                return session.send(SelectChannelPacket.error("channel not available"));
+      // Check if any bot manages this channel
+      if (!channelBots.has(payload.channel)) return session.send(SelectChannelPacket.error('channel not available'));
 
-            // Check if any session already reserved this channel
-            if (channelSessions.has(payload.channel))
-                return session.send(SelectChannelPacket.error("channel is reserved")).close();
+      // Check if any session already reserved this channel
+      if (channelSessions.has(payload.channel)) return session.send(SelectChannelPacket.error('channel is reserved')).close();
 
-            // Reserve channel for session
-            channelSessions.set(payload.channel, session);
-            session.set("channel", payload.channel);
+      // Reserve channel for session
+      channelSessions.set(payload.channel, session);
+      session.set('channel', payload.channel);
 
-            // Send welcome message to channel
-            let bot = channelBots.get(payload.channel);
+      // Send welcome message to channel
+      let bot = channelBots.get(payload.channel);
 
-            if (!bot.online)
-                return session.send(SelectChannelPacket.wait());
-            else
-                bot.emit("session.bind", session);
+      if (!bot.online) return session.send(SelectChannelPacket.wait());
+      else bot.emit('session.bind', session);
 
-            return session.send(SelectChannelPacket.success());
-        }
-        else
-            return session.send(SelectChannelPacket.error("no channel selected")).close();
-    }
-    else {
-        let channel = session.get("channel");
-        let bot = channelBots.get(channel);
-        packetManager.process(bot, session, type, payload);
-    }
+      return session.send(SelectChannelPacket.success());
+    } else return session.send(SelectChannelPacket.error('no channel selected')).close();
+  } else {
+    let channel = session.get('channel');
+    let bot = channelBots.get(channel);
+    packetManager.process(bot, session, type, payload, sendMessageToLog);
+  }
 });
 
 server.listen();
 
-process.on("unhandledRejection", (error, promise) => {
-    console.error(`Unhandled promise rejection: ${error.message}`);
-    console.error(error.stack);
+function sendMessageToLog(log) {
+  const bot = channelBots.get('mta-moderators');
+  if (bot) bot.sendMessage(log);
+  else console.error("Couldn't log to log channel")
+}
+
+process.on('unhandledRejection', (error, promise) => {
+  console.error(`Unhandled promise rejection: ${error.message}`);
+  console.error(error.stack);
 });
 
-process.on("uncaughtException", (error) => {
-    console.error(`Uncaught exception: ${error.message}`);
-    console.error(error.stack);
-    process.exit();
+process.on('uncaughtException', (error) => {
+  console.error(`Uncaught exception: ${error.message}`);
+  console.error(error.stack);
+  process.exit();
 });

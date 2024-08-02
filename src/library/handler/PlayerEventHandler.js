@@ -15,6 +15,7 @@ class PlayerEventHandler extends Handler {
         this.types.add("player.unmute");
         this.types.add("player.finish");
         this.types.add("player.toptime");
+        this.types.add("admin.log");
 
         this.ranks = [];
         this.ranks[1] = { suffix: "st", emoji: ":checkered_flag:" };
@@ -22,7 +23,7 @@ class PlayerEventHandler extends Handler {
         this.ranks[3] = { suffix: "rd", emoji: ":checkered_flag:" };
     }
 
-    execute(bot, session, type, payload) {
+    execute(bot, session, type, payload, logFunc) {
         if (!payload.player)
             return;
 
@@ -83,6 +84,10 @@ class PlayerEventHandler extends Handler {
 
             let time = this.escape(payload.time);
             bot.sendMessage(`:trophy: ${player} has made a new #${payload.position} toptime **[${time}]**`).catch(() => console.error("bot.sendMessage error @ PlayerEventHandler.js#85"));
+        }
+        else if (type == "admin.log") {
+            let log = this.escape(payload.log)
+            logFunc(log).catch(() => console.error("bot.SendMessage error @ PlayerEventHandler.js#90"))
         }
     }
 }
