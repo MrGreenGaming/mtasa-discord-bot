@@ -145,7 +145,7 @@ server.listen();
 
 function sendMessageToLog(log) {
   console.log('LOG:', log);
-  const bot = channelBots.get('mta-moderators');
+  const bot = channelBots.get('mta-logs');
   if (bot) bot.sendMessage(log);
   else console.error("Couldn't log to log channel");
 }
