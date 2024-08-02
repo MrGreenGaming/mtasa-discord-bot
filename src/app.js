@@ -144,9 +144,10 @@ server.on('data', (session, type, payload) => {
 server.listen();
 
 function sendMessageToLog(log) {
+  console.log('LOG:', log);
   const bot = channelBots.get('mta-moderators');
   if (bot) bot.sendMessage(log);
-  else console.error("Couldn't log to log channel")
+  else console.error("Couldn't log to log channel");
 }
 
 process.on('unhandledRejection', (error, promise) => {

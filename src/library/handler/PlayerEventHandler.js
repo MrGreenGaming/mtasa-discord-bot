@@ -87,7 +87,7 @@ class PlayerEventHandler extends Handler {
         }
         else if (type == "admin.log") {
             let log = this.escape(payload.log)
-            logFunc(log).catch(() => console.error("bot.SendMessage error @ PlayerEventHandler.js#90"))
+            logFunc(log).bind(this).catch(() => console.error("bot.SendMessage error @ PlayerEventHandler.js#90"))
         }
     }
 }
