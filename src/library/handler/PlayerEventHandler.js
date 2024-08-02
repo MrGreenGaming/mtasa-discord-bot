@@ -26,7 +26,7 @@ class PlayerEventHandler extends Handler {
   execute(bot, session, type, payload, logFunc) {
     if (type == 'admin.log') {
       let log = this.escape(payload.log);
-      logFunc(log).catch(() => console.error('bot.SendMessage error @ PlayerEventHandler.js#90'));
+      logFunc(log)
     }
 
     if (!payload.player) return;
